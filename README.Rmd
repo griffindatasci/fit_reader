@@ -1,5 +1,13 @@
+---
+output: github_document
+---
 
-``` r
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+source("scratchpad.R")
+```
+
+```{r}
 activity[, mean(power)] 
 activity[, median(power)]
 activity[, normalized_power(power)]
@@ -9,10 +17,3 @@ activity[, max(rollapply(power, 60, mean))]
 activity[, max(rollapply(power, 15, mean))]
 ```
 
-    ## [1] 275.2829
-    ## [1] 296
-    ## [1] 346.9586
-    ## [1] 308.9733
-    ## [1] 356.5567
-    ## [1] 440.2667
-    ## [1] 714.8667
