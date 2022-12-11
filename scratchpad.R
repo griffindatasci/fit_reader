@@ -130,6 +130,8 @@ activity[, ggplot(.SD, aes(x=distance)) +
 
 
 
+
+
 activity[, ggplot(.SD, aes(x=distance, y=heart_rate)) +
              theme_light() +
              geom_ribbon(aes(ymin=min(heart_rate)-10, 
