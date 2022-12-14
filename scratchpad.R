@@ -142,7 +142,6 @@ figures$alt <-
           #aspect.ratio = 0.33,
           plot.margin=margin(0,0,0,0,"cm")) +
     geom_ribbon(aes(ymin=min(activity$altitude), ymax=activity$altitude), fill="#41706c60") +
-    geom_path(color="#41706c") +
     geom_path(color=NA, aes(text=sprintf("%.0f km<br>%.0f m", km, altitude))) +
     scale_x_continuous(expand=c(0,0)) +
     scale_y_continuous(expand=c(0,0)) +
@@ -189,10 +188,8 @@ x_breaks <- c(5,30,120,600)
 
 figures$pwr_crv <- 
   ggplot(data=pwr_crv, aes(x=secs, y=power)) +
-    geom_area(color=NA, fill="#41706c60") +
-    geom_path(color="#41706c") +
-  
-    geom_path(aes(text=paste(sprintf("%02.f:%02.f", secs%/%60, secs%%60),
+    geom_ribbon(color=NA, fill="#41706c60", aes(ymin=0, ymax=power)) +
+    geom_path(color="#41706c", aes(text=paste(sprintf("%02.f:%02.f", secs%/%60, secs%%60),
                              "@", round(power,0),"W"))) +
     labs(x="", y="Power") +
     theme(panel.background=element_blank(),
@@ -233,7 +230,7 @@ plotly_figures$hr_zones <- figures$hr_zones %>%
 
 # Power Zones ------------------------------------------------------------------
 pwr_key <- data.table(power_zone=1:7, 
-                     zone_name=c("Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic Capacity", "Neuromuscular Power"))
+                     zone_name=c("Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic", "Neuromuscular"))
 
 figures$pwr_zones <-
   activity[, .N, keyby=power_zone][pwr_key, on="power_zone"][, .(power_zone, zone_name, "N"=ifelse(is.na(N), 0, N))] %>% 
@@ -246,59 +243,59 @@ figures$pwr_zones <-
         axis.line=element_line(colour="black"),
         #aspect.ratio = 0.33,
         plot.margin=margin(0,0,0,0,"cm")) +
-  scale_x_discrete(expand=c(0,0), limits=c("Active Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic Capacity", "Neuromuscular Power")) +
+  scale_x_discrete(expand=c(0,0), limits=c("Recovery", "Endurance", "Tempo", "Threshold", "VO2 Max", "Anaerobic", "Neuromuscular")) +
   scale_y_continuous(expand=c(0,0), breaks=seq(0,100000,600), labels=sprintf("%02.f:%02.f", seq(0,100000,600)%/%60, seq(0,100000,600)%%60))
 
 plotly_figures$pwr_zones <- figures$pwr_zones %>% 
-  ggplotly(tooltip="text", height=500, width=500)
+  ggplotly(tooltip="text", height=250, width=500)
 
 
-
-
-
-# Analysis Plot ----------------------------------------------------------------
-activity[, power_30s := c(rep(NA, 29), rollapply(power, 30, mean))]
-
-figures$mix <-
-  ggplot(data=activity, aes(x=distance)) +
-    geom_area(aes(y=altitude)) +
-    geom_path(aes(y=c(rep(NA, 59), rollapply(heart_rate, 60, mean))), color="red") +
-    geom_path(aes(y=c(rep(NA, 59), rollapply(power, 60, mean))), color="orange") +
-    geom_path(aes(y=c(rep(NA, 59), rollapply(cadence, 60, mean))), color="green") +
-    geom_path(aes(y=c(rep(NA, 59), rollapply(kmh, 60, mean))), color="blue")
-
-
-
-data.table(names(values), values)
-
-
-
-
-
-
-# TODO - experiment with smoothing
-metric_plot <- function(data, met, label, smoothing=1){
-  
-  ggplot(data, aes(x=distance, y=met)) +
-    geom_ribbon(aes(ymin=min(met), 
-                    ymax=diff(range(met))/max(altitude)*altitude+min(met)), fill="#10506040") +
-    geom_path(aes(y=c(rep(NA,smoothing-1), rollapply(met,smoothing,mean)))) +
-    geom_hline(yintercept=mean(met), lty=2) +
-    labs(x="Distance (m)", y=label)
-  }
-
-activity[, metric_plot(.SD, heart_rate, "Heart Rate (BPM)", smoothing=300)]
-activity[, metric_plot(.SD, power, "Power (W)", smoothing=300)]
-
-
-
-
-activity[, m05_pwr:=c(rep(NA,299), rollapply(power, 300, mean))]
-ggplot(activity[!is.na(m05_pwr)], aes(x=distance, y=m05_pwr)) +
-  geom_ribbon(aes(ymin=min(m05_pwr)-abs(min(altitude)),
-                  ymax=(min(m05_pwr)*(altitude+altitude/max(altitude))))) +
-  geom_path(color="red")
-
-
-
-
+# 
+# 
+# 
+# # Analysis Plot ----------------------------------------------------------------
+# activity[, power_30s := c(rep(NA, 29), rollapply(power, 30, mean))]
+# 
+# figures$mix <-
+#   ggplot(data=activity, aes(x=distance)) +
+#     geom_area(aes(y=altitude)) +
+#     geom_path(aes(y=c(rep(NA, 59), rollapply(heart_rate, 60, mean))), color="red") +
+#     geom_path(aes(y=c(rep(NA, 59), rollapply(power, 60, mean))), color="orange") +
+#     geom_path(aes(y=c(rep(NA, 59), rollapply(cadence, 60, mean))), color="green") +
+#     geom_path(aes(y=c(rep(NA, 59), rollapply(kmh, 60, mean))), color="blue")
+# 
+# 
+# 
+# data.table(names(values), values)
+# 
+# 
+# 
+# 
+# 
+# 
+# # TODO - experiment with smoothing
+# metric_plot <- function(data, met, label, smoothing=1){
+#   
+#   ggplot(data, aes(x=distance, y=met)) +
+#     geom_ribbon(aes(ymin=min(met), 
+#                     ymax=diff(range(met))/max(altitude)*altitude+min(met)), fill="#10506040") +
+#     geom_path(aes(y=c(rep(NA,smoothing-1), rollapply(met,smoothing,mean)))) +
+#     geom_hline(yintercept=mean(met), lty=2) +
+#     labs(x="Distance (m)", y=label)
+#   }
+# 
+# activity[, metric_plot(.SD, heart_rate, "Heart Rate (BPM)", smoothing=300)]
+# activity[, metric_plot(.SD, power, "Power (W)", smoothing=300)]
+# 
+# 
+# 
+# 
+# activity[, m05_pwr:=c(rep(NA,299), rollapply(power, 300, mean))]
+# ggplot(activity[!is.na(m05_pwr)], aes(x=distance, y=m05_pwr)) +
+#   geom_ribbon(aes(ymin=min(m05_pwr)-abs(min(altitude)),
+#                   ymax=(min(m05_pwr)*(altitude+altitude/max(altitude))))) +
+#   geom_path(color="red")
+# 
+# 
+# 
+# 
