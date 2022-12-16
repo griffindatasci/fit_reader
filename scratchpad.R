@@ -1,6 +1,6 @@
 library(data.table)
 library(zoo)
-#library(FITfileR)
+library(FITfileR)
 library(dplyr)
 library(ggplot2)
 library(plotly)
@@ -12,7 +12,7 @@ normalize <- function(x){
 }
 
 
-# readFitFile("data/zrl_r2_s5/Zwift_Race_3R_Three_Sisters_Hilly_Race_47km_29_2mi_879m_B_on_Three_Sisters_in_Watopia.fit") %>%
+# readFitFile("data/Zwift_Race_Zwift_Racing_League_WTRL_EMEAE_North_Open_B2_on_Cobbled_Climbs_in_Richmond.fit") %>%
 #   records() %>%
 #   data.table ->
 #   activity
